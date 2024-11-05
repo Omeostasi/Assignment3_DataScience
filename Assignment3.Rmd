@@ -1,0 +1,12 @@
+---
+title: "Assignment3"
+author: "Marina Ramírez Baños, Giovanni Vincenzo Cavallo, Pablo Bondia Portoles, Priyanka"
+date: "2024-11-05"
+output: html_document
+---
+Blabla bla bla
+projet
+idea
+code
+bla bla
+workherebitches
