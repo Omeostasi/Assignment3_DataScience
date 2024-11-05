@@ -1,0 +1,40 @@
+---
+title: "Religion vs corruption dataset"
+author: "Marina Ramírez Baños, Giovanni Vincenzo Cavallo, Pablo Bondia Portoles, Priyanka"
+date: "2024-11-05"
+output: html_document
+---
+
+First, lets load the packages needed and import both data sets.
+
+```{r}
+# Load tidyverse and readr packages
+
+library(tidyverse)
+library(readr)
+
+# Import religion_by_country and corruption_by_country datasets
+
+religion_by_country <- read_csv("religion-by-country-2024.csv")
+corruption_by_country <- read_delim("CPI2020.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE, skip = 2)
+
+```
+
+Second, we are going to filter religion_by_country dataset to include only the data from 2020.
+
+```{r}
+
+dput(names(religion_by_country))
+
+
+# Filter religion_by_country dataset only including the data from 2020
+
+religion_by_country <- religion_by_country %>% select("country", "ReligionByCountry_TotalReligious_2020",  "religionByCountry_christians_2020", 
+"religionByCountry_muslims_2020", "religionByCountry_hindus_2020", 
+"religionByCountry_buddhists_2020", "religionByCountry_folkReligions_2020", 
+"religionByCountry_jews_2020", "religionByCountry_other_2020", 
+"religionByCountry_unaffiliated_2020", "total")
+
+
+
+```
