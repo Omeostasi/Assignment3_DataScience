@@ -57,3 +57,17 @@ merged_dataset <- full_join(religion_by_country, corruption_by_country, by = "co
 ```
 
 # Tidy data
+
+For the propouse of the analysis, we want to exclude those countries that do not show data about the amount of religious population in 2020 or have a NA value for CPI score 2020.
+
+```{r}
+# Remove from merged_dataset those countries with NA values for ReligionByCountry_TotalReligious_2020
+
+merged_dataset <- merged_dataset %>% filter(!is.na(ReligionByCountry_TotalReligious_2020))
+
+# Remove from merged_dataset those countries with NA values for CPI score 2020
+
+merged_dataset <- merged_dataset %>% filter(!is.na(`CPI score 2020`))
+```
+
+...depending on what we agree to do, continue tidying the data here
