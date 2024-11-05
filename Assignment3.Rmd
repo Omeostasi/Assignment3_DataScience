@@ -4,7 +4,6 @@ author: "Marina Ramírez Baños, Giovanni Vincenzo Cavallo, Pablo Bondia Portole
 date: "2024-11-05"
 output: html_document
 ---
-Blabla bla bla
 projet
 idea
 code
