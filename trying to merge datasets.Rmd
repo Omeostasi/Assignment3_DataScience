@@ -5,6 +5,8 @@ date: "2024-11-05"
 output: html_document
 ---
 
+# Import data
+
 First, lets load the packages needed and import both data sets.
 
 ```{r}
@@ -38,3 +40,20 @@ religion_by_country <- religion_by_country %>% select("country", "ReligionByCoun
 
 
 ```
+
+# Merging datasets
+
+To merge both datasets we have to use a variable they have in common. In our case, that variable is "country". However, we firstly need to rename "Country" in the corruption_by_country dataset to "country", as it is in the religion_by_country dataset.
+
+```{r}
+# Rename "Country" to "country" from corruption_by_country dataset
+
+corruption_by_country <- corruption_by_country %>% rename(country = Country)
+
+# Use full_join() from tidyverse to merge the datasets by country. By doing that, if a country is included in the dataset 1 but not in dataset 2, the columms of dataset 2 will contain "NA" values for that rows and viceversa
+
+merged_dataset <- full_join(religion_by_country, corruption_by_country, by = "country")
+
+```
+
+# Tidy data
