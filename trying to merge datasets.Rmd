@@ -18,6 +18,7 @@ library(readr)
 # Import religion_by_country and corruption_by_country datasets
 
 religion_by_country <- read_csv("religion-by-country-2024.csv")
+
 corruption_by_country <- read_delim("CPI2020.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE, skip = 2)
 
 ```
@@ -58,7 +59,7 @@ merged_dataset <- full_join(religion_by_country, corruption_by_country, by = "co
 
 # Tidy data
 
-For the propouse of the analysis, we want to exclude those countries that do not show data about the amount of religious population in 2020 or have a NA value for CPI score 2020.
+For the purpose of the analysis, we want to exclude those countries that do not show data about the amount of religious population in 2020 or have a NA value for CPI score 2020.
 
 ```{r}
 # Remove from merged_dataset those countries with NA values for ReligionByCountry_TotalReligious_2020
@@ -68,6 +69,51 @@ merged_dataset <- merged_dataset %>% filter(!is.na(ReligionByCountry_TotalReligi
 # Remove from merged_dataset those countries with NA values for CPI score 2020
 
 merged_dataset <- merged_dataset %>% filter(!is.na(`CPI score 2020`))
+
 ```
 
-...depending on what we agree to do, continue tidying the data here
+
+
+We want the merged dataset to have no NAs and to include the percentage of people affiliated with a religion
+
+
+```{r}
+tidy_dataset<-merged_dataset %>% 
+  mutate(percentage_religious = (ReligionByCountry_TotalReligious_2020/ total) * 100) %>% 
+  select(country,percentage_religious)
+
+```
+
+
+
+Assumptions for check for correlation analysis:
+
+1. Linearity check: Pearson’s correlation measures only linear relationships. If the relationship is non-linear (e.g., quadratic or logarithmic), Pearson’s correlation may underestimate or misrepresent the true relationship.
+
+2. 1.3. Homoscedasticity (Equal Variances):  If the variability of one variable increases as the other variable increases (called heteroscedasticity), Pearson’s correlation may not be valid, leading to incorrect conclusions about the strength of the relationship.
+
+
+
+```{r}
+# Load ggplot2 library
+library(ggplot2)
+
+# Example: Scatterplot to check linearity
+ggplot(religion_by_country, aes(x = age_of_marriage, y = percentage_affiliated)) +
+  geom_point() +                          # Plot the data points
+  geom_smooth(method = "lm", se = FALSE, col = "red") +  # Add a linear regression line
+  labs(title = "Scatterplot: Age of Marriage vs % Affiliated",
+       x = "Age of Marriage", y = "% Affiliated") +
+  theme_minimal()
+
+
+```
+
+2. Normality of variables: Pearson’s correlation assumes that the data comes from normal distributions, so violations of normality can affect the p-value and the confidence interval of the correlation coefficient, making the test less reliable. 
+
+If it is not normal we would still do the analysis as the sample size (number of countries) is quite large so under the CLT we can make the anlaysis.
+
+```{r}
+
+```
+
