@@ -1,6 +1,6 @@
 ---
 title: "Assignment3"
-author: "Marina Ramírez Baños, Giovanni Vincenzo Cavallo, Pablo Bondia Portoles, Priyanka"
+author: "Marina Ramírez Baños, Giovanni Vincenzo Cavallo, Pablo Bondia Portoles, Priyanka Anantha Narayanan"
 date: "2024-11-05"
 output: html_document
 ---
