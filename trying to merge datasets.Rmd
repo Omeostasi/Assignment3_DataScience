@@ -115,18 +115,6 @@ merged_dataset <- merged_dataset %>% filter(!is.na(`CPI score 2020`))
 
 
 
-We want the merged dataset to have no NAs and to include the percentage of people affiliated with a religion
-
-
-```{r}
-tidy_dataset<-merged_dataset %>% 
-  mutate(percentage_religious = (ReligionByCountry_TotalReligious_2020/ total) * 100) %>% 
-  select(country,percentage_religious)
-
-```
-
-
-
 Assumptions for check for correlation analysis:
 
 1. Linearity check: Pearson’s correlation measures only linear relationships. If the relationship is non-linear (e.g., quadratic or logarithmic), Pearson’s correlation may underestimate or misrepresent the true relationship.
@@ -140,11 +128,11 @@ Assumptions for check for correlation analysis:
 library(ggplot2)
 
 # Example: Scatterplot to check linearity
-ggplot(religion_by_country, aes(x = age_of_marriage, y = percentage_affiliated)) +
+ggplot(merged_dataset, aes(x = percentage_ReligionByCountry_TotalReligious_2020, y = `CPI score 2020`)) +
   geom_point() +                          # Plot the data points
   geom_smooth(method = "lm", se = FALSE, col = "red") +  # Add a linear regression line
-  labs(title = "Scatterplot: Age of Marriage vs % Affiliated",
-       x = "Age of Marriage", y = "% Affiliated") +
+  labs(title = "Scatterplot: Corruption vs % Affiliated",
+       x = "% of affiliation", y = "% CPI") +
   theme_minimal()
 
 
@@ -155,6 +143,28 @@ ggplot(religion_by_country, aes(x = age_of_marriage, y = percentage_affiliated))
 If it is not normal we would still do the analysis as the sample size (number of countries) is quite large so under the CLT we can make the anlaysis.
 
 ```{r}
+# Histogram for each variable
+
+# Apply log transformation
+merged_dataset$Religious_Log <- log(merged_dataset$percentage_ReligionByCountry_TotalReligious_2020)
+
+# Check histogram for CPI score 2020
+ggplot(merged_dataset, aes(x = `CPI score 2020`)) + 
+  geom_histogram(bins = 20, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of Corruption Index")
+
+# Check histogram for original religious percentage
+ggplot(merged_dataset, aes(x = percentage_ReligionByCountry_TotalReligious_2020)) + 
+  geom_histogram(bins = 20, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of Religious Percentage")
+
+# Q-Q plot for CPI score 2020
+qqnorm(merged_dataset$`CPI score 2020`)
+qqline(merged_dataset$`CPI score 2020`, col = "red")
+
+# Q-Q plot for original religious percentage
+qqnorm(merged_dataset$percentage_ReligionByCountry_TotalReligious_2020)
+qqline(merged_dataset$percentage_ReligionByCountry_TotalReligious_2020, col = "red")
 
 ```
 
