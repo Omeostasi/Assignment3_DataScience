@@ -170,7 +170,7 @@ qqline(merged_dataset$Religious_Log, col = "red")
 
 After log10 the CPI, we get a more normal like histogram although a bit skewed.
 
-
+3. Homoscedasticity (Equal Variances):  If the variability of one variable increases as the other variable increases (called heteroscedasticity), Pearson’s correlation may not be valid, leading to incorrect conclusions about the strength of the relationship.
 Another Check for Homoscedasticity 
 ```{r}
 
@@ -179,9 +179,13 @@ plot(model$residuals ~ model$fitted.values)
 abline(h = 0, col = "red")
 
 ```
-Good Homoscedasticity 
+Fan-shaped which indicates heteroscedasticity.
+No problem for correlation but it is a problem for regression.
 
-Check for outliers:
+Which would break homoscedasticity assumption, and large samples dont really solve the problem. A solution might be to use a 
+
+
+4. Check for outliers:
 
 ```{r}
 # Boxplot to check for outliers in 'percentage_ReligionByCountry_TotalReligious_2020'
@@ -196,3 +200,37 @@ Several outliers are found, however since they represent relevant cases we decid
 
 
 I tried log and sqrt transformation, the histogram looks more normal but there is still a lot of outliers and skewness, therefore a non-parametric test is suggested.
+To further assess outliers we perform a leverage analysis:
+
+To evaluate the influence of this outliers I will utilize Leverage and Cook's tests
+
+Leverage measures how far an observation’s predictor values are from the mean of the predictor variables. High-leverage points CAN disproportionately influence the regression line, especially if they are outliers in the outcome variable as well.
+
+```{r}
+
+leverage <- hatvalues(model)
+plot(leverage, main = "Leverage Values")
+abline(h = 2*(length(coef(model))/nrow(merged_dataset)), col = "red")  # Threshold line
+
+```
+
+The leverage analysis show that 9 points have the potential of being influential.
+
+To further examine this points we will use cooks test:
+
+```{r}
+cooksD <- cooks.distance(model)
+plot(cooksD, main = "Cook's Distance")
+abline(h = 4/length(cooksD), col = "red")  # Reference line at 4/n
+
+```
+
+
+
+From this plot we see that there are at least 4 points that are truly highly influential on the model (over the threshold), and since they are significant valid data-points, and not measurements mistakes it would not be correct to eliminate them from the analysis.
+
+It would be good to re-evaluate the Model Fit by removing or adjusting influential points temporarily to assess their impact on the regression coefficients and see if they distort the model.
+
+However the tests carried out are enough to determine that parametric tests should not be utilized with this data, therefore, both for correlation and regression, non-parametric tests should be used.
+
+
