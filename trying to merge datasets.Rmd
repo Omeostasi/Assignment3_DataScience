@@ -115,7 +115,7 @@ merged_dataset <- merged_dataset %>% filter(!is.na(`CPI score 2020`))
 
 
 
-Assumptions for check for correlation analysis:
+Before performing the correlation analysis we check assumptions:
 
 1. Linearity check: Pearson’s correlation measures only linear relationships. If the relationship is non-linear (e.g., quadratic or logarithmic), Pearson’s correlation may underestimate or misrepresent the true relationship.
 
@@ -154,7 +154,7 @@ ggplot(merged_dataset, aes(x = `CPI score 2020`)) +
   labs(title = "Histogram of Corruption Index")
 
 # Check histogram for original religious percentage
-ggplot(merged_dataset, aes(x = percentage_ReligionByCountry_TotalReligious_2020)) + 
+ggplot(merged_dataset, aes(x = Religious_Log)) + 
   geom_histogram(bins = 20, fill = "lightblue", color = "black") +
   labs(title = "Histogram of Religious Percentage")
 
@@ -163,8 +163,36 @@ qqnorm(merged_dataset$`CPI score 2020`)
 qqline(merged_dataset$`CPI score 2020`, col = "red")
 
 # Q-Q plot for original religious percentage
-qqnorm(merged_dataset$percentage_ReligionByCountry_TotalReligious_2020)
-qqline(merged_dataset$percentage_ReligionByCountry_TotalReligious_2020, col = "red")
+qqnorm(merged_dataset$Religious_Log)
+qqline(merged_dataset$Religious_Log, col = "red")
 
 ```
 
+After log10 the CPI, we get a more normal like histogram although a bit skewed.
+
+
+Another Check for Homoscedasticity 
+```{r}
+
+model <- lm(`CPI score 2020` ~ `Religious_Log`, data = merged_dataset)
+plot(model$residuals ~ model$fitted.values)
+abline(h = 0, col = "red")
+
+```
+Good Homoscedasticity 
+
+Check for outliers:
+
+```{r}
+# Boxplot to check for outliers in 'percentage_ReligionByCountry_TotalReligious_2020'
+boxplot(merged_dataset$Religious_Log,
+        main = "Boxplot for Religious Percentage",
+        ylab = "Religious Percentage",
+        col = "lightblue")
+
+```
+
+Several outliers are found, however since they represent relevant cases we decide to keep them.
+
+
+I tried log and sqrt transformation, the histogram looks more normal but there is still a lot of outliers and skewness, therefore a non-parametric test is suggested.
