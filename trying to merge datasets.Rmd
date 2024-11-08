@@ -251,4 +251,55 @@ It would be good to re-evaluate the Model Fit by removing or adjusting influenti
 
 However the tests carried out are enough to determine that parametric tests should not be utilized with this data, therefore, both for correlation and regression, non-parametric tests should be used.
 
+##USING NON-RELIGIOUS DATA
+
+```{r}
+# Load ggplot2 library
+library(ggplot2)
+
+# Example: Scatterplot to check linearity
+ggplot(merged_dataset, aes(x = percentage_religionByCountry_unaffiliated_2020, y = `CPI score 2020`)) +
+  geom_point() +                          # Plot the data points
+  geom_smooth(method = "lm", se = FALSE, col = "red") +  # Add a linear regression line
+  labs(title = "Scatterplot: Corruption vs % Unaffiliated",
+       x = "% of affiliation", y = "% CPI") +
+  theme_minimal()
+
+```
+
+
+
+```{r}
+# Histogram for each variable - Non-religious
+
+# Apply log transformation
+merged_dataset$NonReligious_Log <- log(merged_dataset$percentage_religionByCountry_unaffiliated_2020)
+
+
+
+# Check histogram for original non-religious percentage
+ggplot(merged_dataset, aes(x = NonReligious_Log)) + 
+  geom_histogram(bins = 20, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of Non-Religious Percentage")
+
+
+# Q-Q plot for original religious percentage
+qqnorm(merged_dataset$NonReligious_Log)
+qqline(merged_dataset$NonReligious_Log, col = "red")
+
+```
+
+```{r}
+# Boxplot to check for outliers in 'percentage_ReligionByCountry_TotalReligious_2020'
+boxplot(merged_dataset$NonReligious_Log,
+        main = "Boxplot for Non-Religious Percentage",
+        ylab = "Non-Religious Percentage",
+        col = "lightblue")
+```
+
+```{r}
+model2 <- lm(`CPI score 2020` ~ `NonReligious_Log`, data = merged_dataset)
+plot(model2$residuals ~ model2$fitted.values)
+abline(h = 0, col = "red")
+```
 
