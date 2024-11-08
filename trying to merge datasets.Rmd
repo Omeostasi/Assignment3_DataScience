@@ -284,14 +284,14 @@ ggplot(merged_dataset, aes(x = NonReligious_Log)) +
   labs(title = "Histogram of Non-Religious Percentage")
 
 
-# Q-Q plot for original religious percentage
+# Q-Q plot for original non-religious percentage
 qqnorm(merged_dataset$NonReligious_Log)
 qqline(merged_dataset$NonReligious_Log, col = "red")
 
 ```
 
 ```{r}
-# Boxplot to check for outliers in 'percentage_ReligionByCountry_TotalReligious_2020'
+# Boxplot to check for outliers in 'percentage_religionByCountry_unaffiliated_2020'
 boxplot(merged_dataset$NonReligious_Log,
         main = "Boxplot for Non-Religious Percentage",
         ylab = "Non-Religious Percentage",
