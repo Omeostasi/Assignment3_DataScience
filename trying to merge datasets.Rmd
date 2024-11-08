@@ -118,6 +118,8 @@ For the purpose of the analysis, we want to exclude those countries that do not 
 
 ### WE ACTUALLY DON'T GET NA VALUE IF WE ARE ABLE TO MERGE THEM PROPERLY (AT LEAST I THINK)
 
+##We have to do it to remove those countries where we have no data about religion or corruption. The corruption_by_country dataset contains 182 observations, whereas the religion_by_country contains 230 (thus, more countries were included in this last dataset)
+
 ```{r}
 # Remove from merged_dataset those countries with NA values for total_population
 
