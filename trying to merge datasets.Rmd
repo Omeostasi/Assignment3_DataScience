@@ -251,6 +251,7 @@ It would be good to re-evaluate the Model Fit by removing or adjusting influenti
 
 However the tests carried out are enough to determine that parametric tests should not be utilized with this data, therefore, both for correlation and regression, non-parametric tests should be used.
 
+
 ##USING NON-RELIGIOUS DATA
 
 ```{r}
