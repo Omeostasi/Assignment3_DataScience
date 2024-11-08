@@ -19,7 +19,7 @@ library(readr)
 
 religion_by_country <- read_csv("religion-by-country-2024.csv")
 
-corruption_by_country <- read_delim("CPI2020.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE, skip = 2)
+corruption_by_country <- read_delim("CPI2020_for_merge.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
 ```
 

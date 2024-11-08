@@ -1,5 +1,4 @@
-﻿Column1;Column2;Column3;Column4;Column5;Column6;Column7;Column8;Column9;Column10;Column11;Column12;Column13;Column14;Column15;Column16;Column17;Column18;Column19;Column20;Column21;Column22
-;;;;;;;;;;;;;;;;;;;;;
+﻿Country;ISO3;Region;CPI score 2020;Rank;Standard error;Number of sources;Lower CI;Upper CI;African Development Bank CPIA;Bertelsmann Foundation Sustainable Governance Index;Bertelsmann Foundation Transformation Index;Economist Intelligence Unit Country Ratings;Freedom House Nations in Transit;Global Insight Country Risk Ratings;IMD World Competitiveness Yearbook;PERC Asia Risk Guide;PRS International Country Risk Guide;Varieties of Democracy Project;World Bank CPIA;World Economic Forum EOS;World Justice Project Rule of Law Index
 Afghanistan;AFG;AP;19;165;2.44;5;15.00;23.00;;;25;;;10;;;;26;18;;15
 Albania;ALB;ECA;36;104;0.92;8;34.50;37.50;;;37;37;42;35;;;41;32;;37;30
 Algeria;DZA;MENA;36;104;1.48;7;33.57;38.43;;;37;37;;35;;;32;28;;46;37
