@@ -7,8 +7,6 @@ output: html_document
 
 # Import data
 
-First, let's load the packages needed and import both datasets.
-
 ```{r}
 # Load tidyverse and readr packages
 
@@ -23,7 +21,7 @@ corruption_by_country <- read_delim("CPI2020_for_merge.csv", delim = ";", escape
 
 ```
 
-Second, we are going to filter the "religion_by_country" dataset to include only the data from 2020.
+We must filter the "religion_by_country" dataset to include only the data from 2020, as is the data we have in the "corruption_by_country" dataset.
 
 
 ```{r}
@@ -60,7 +58,7 @@ religion_by_country <- religion_by_country %>% select("country", "ReligionByCoun
 
 ```
 
-We are going to create a dataset percentage_religion_by_country that includes the percentage of people of each religion over the total population of the country.
+We create a dataset "percentage_religion_by_country", which includes the percentage of people of each religion over the total population of the country.
 
 ```{r}
 # Create new columns
@@ -187,7 +185,7 @@ qqline(merged_dataset$NonReligious_Log, col = "red")
 
 
 ```
-After log transformation, the obtained histogram for non-religious population seemed nornally distributeb. Few outliers were observed, but since they represent relevant cases we decide to keep them and assume a normally distributed data.
+After log transformation, the obtained histogram for non-religious population seemed to be nornally distributed. Few outliers were observed, but since they represent relevant cases we decide to keep them and assume a normally distributed data.
 
 
 
@@ -217,9 +215,7 @@ boxplot(merged_dataset$NonReligious_Log,
 
 ```
 
-As observed in the histrogram, we got few outliers. To further assess outliers we perform a leverage analysis:
-
-To evaluate the influence of this outliers I will utilize Leverage and Cook's tests
+As observed in the histrogram, we got few outliers. To evaluate the influence of this outliers we utilize Leverage and Cook's tests.
 
 Leverage measures how far an observation’s predictor values are from the mean of the predictor variables. High-leverage points CAN disproportionately influence the regression line, especially if they are outliers in the outcome variable as well.
 
@@ -235,7 +231,7 @@ summary(leverage)
 
 The leverage analysis show that 9 points have the potential of being influential.
 
-To further examine this points we will use cooks test:
+To further examine this points we will use Cook's Test:
 
 ```{r}
 
@@ -243,7 +239,7 @@ To further examine this points we will use cooks test:
 cooksD <- cooks.distance(model)
 
 # Plot Cook's Distance
-plot(cooksD, main = "Cook's Distance", pch = 19, col = "blue")
+plot(cooksD, main = "Cook's Distance")
 abline(h = 4/length(cooksD), col = "red")  # Reference line for Cook's Distance at 4/n
 
 # Identify influential observations
