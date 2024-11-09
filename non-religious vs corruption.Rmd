@@ -238,16 +238,65 @@ The leverage analysis show that 9 points have the potential of being influential
 To further examine this points we will use cooks test:
 
 ```{r}
-cooksD <- cooks.distance(model)
-plot(cooksD, main = "Cook's Distance")
-abline(h = 4/length(cooksD), col = "red")  # Reference line at 4/n
 
+# Calculate Cook's Distance
+cooksD <- cooks.distance(model)
+
+# Plot Cook's Distance
+plot(cooksD, main = "Cook's Distance", pch = 19, col = "blue")
+abline(h = 4/length(cooksD), col = "red")  # Reference line for Cook's Distance at 4/n
+
+# Identify influential observations
+influential_points <- which(cooksD > 4/length(cooksD))
+cat("The influential observations are: ", influential_points, "\n")
+
+influential_data <- merged_dataset[influential_points, ]
+print("Influential data:")
+print(influential_data)
+
+
+```
+From this plot we see that there are 7 points that are truly highly influential on the model (over the threshold), and since they are significant valid data-points, and not measurements mistakes it would not be correct to eliminate them from the analysis.
+
+Also, we re-evaluated the Model Fit by removing or adjusting influential points temporarily to assess their impact on the regression coefficients and see if they distort the mode and it didn't change that much:
+```{r}
+# Create side-by-side plots
+par(mfrow = c(1, 2))  # Set up for two plots
+
+# Model with all data
+plot(merged_dataset$NonReligious_Log, merged_dataset$`CPI score 2020`, 
+     main = "Model with All Data", 
+     xlab = "NonReligious_Log", ylab = "CPI score 2020", pch = 19, col = "blue")
+abline(model, col = "red")
+
+# Model without influential observations
+plot(merged_dataset$NonReligious_Log, merged_dataset$`CPI score 2020`, 
+     main = "Model without Influential Points", 
+     xlab = "NonReligious_Log", ylab = "CPI score 2020", pch = 19, col = "black")
+abline(model_without_influential, col = "green")
 ```
 
 
+```{r}
 
-From this plot we see that there are at least 4 points that are truly highly influential on the model (over the threshold), and since they are significant valid data-points, and not measurements mistakes it would not be correct to eliminate them from the analysis.
+# Create the model with all data
+model <- lm(`CPI score 2020` ~ `NonReligious_Log`, data = merged_dataset)
 
-It would be good to re-evaluate the Model Fit by removing or adjusting influential points temporarily to assess their impact on the regression coefficients and see if they distort the model.
+# Create the model without the influential points
+model_without_influential <- lm(`CPI score 2020` ~ `NonReligious_Log`, 
+                                data = merged_dataset[-influential_points, ])
 
-However the tests carried out are enough to determine that parametric tests should not be utilized with this data, therefore, both for correlation and regression, non-parametric tests should be used.
+# Print the coefficients for the model with all data
+coef_all_data <- coef(model)
+cat("Coefficients for the model with all data:\n")
+print(coef_all_data)
+
+# Print the coefficients for the model without influential observations
+coef_without_influential <- coef(model_without_influential)
+cat("\nCoefficients for the model without influential points:\n")
+print(coef_without_influential)
+
+
+```
+
+The tests carried out are enough to determine that parametric tests should not be utilized with this data, therefore, both for correlation and regression, non-parametric tests should be used.
