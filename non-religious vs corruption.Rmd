@@ -136,10 +136,7 @@ Before performing the correlation analysis we check assumptions:
 
 
 ```{r}
-# Load ggplot2 library
-library(ggplot2)
-
-# Example: Scatterplot to check linearity
+# Scatterplot to check linearity
 ggplot(merged_dataset, aes(x = percentage_religionByCountry_unaffiliated_2020, y = `CPI score 2020`)) +
   geom_point() +                          # Plot the data points
   geom_smooth(method = "lm", se = FALSE, col = "red") +  # Add a linear regression line
