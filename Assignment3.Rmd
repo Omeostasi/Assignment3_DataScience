@@ -23,9 +23,9 @@ library(readr)
 # Import religion_by_country and corruption_by_country datasets
 
 religion_by_country <- read_csv("religion-by-country-2024.csv")
-
 corruption_by_country <- read_delim("CPI2020_for_merge.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE)
-
+corruption_by_country$`CPI score 2020`<- as.numeric(corruption_by_country$`CPI score 2020`) #Changing the column type from chr to numeric
+class(corruption_by_country$`CPI score 2020`) 
 ```
 
 We must filter the "religion_by_country" dataset to include only the data from 2020, as is the data we have in the "corruption_by_country" dataset.
@@ -130,6 +130,58 @@ merged_dataset <- merged_dataset %>% filter(!is.na(total_population))
 # Remove from merged_dataset those countries with NA values for CPI score 2020
 
 merged_dataset <- merged_dataset %>% filter(!is.na(`CPI score 2020`))
+
+# Removing spaces
+merged_dataset <- janitor::clean_names(merged_dataset)
+
 ```
 
 # Correlation Analysis
+
+We need to check for these assumptions if we want to perform a correlation test:
+* Linearity: There should be a linear relationship between the two variables. Correlation only measures linear relationships.
+* Normality (for parametric correlation tests like Pearson): The two variables should ideally follow a normal distribution. This is especially important for smaller sample sizes.
+* No Outliers: Outliers can significantly distort the correlation coefficient.
+
+## Linearity
+
+```{r}
+plot(merged_dataset$percentage_religion_by_country_unaffiliated_2020, merged_dataset$cpi_score_2020, main = "Scatter Plot", xlab = "Non Religious People", ylab = "CPI score")
+abline(lm(merged_dataset$cpi_score_2020 ~ merged_dataset$percentage_religion_by_country_unaffiliated_2020), col = "blue") # Adds a linear regression line
+```
+## Normality
+```{r}
+# CPI
+qqnorm(merged_dataset$cpi_score_2020, y = 'CPI Score Index')
+qqline(merged_dataset$cpi_score_2020)
+# Non_Religious
+qqnorm(merged_dataset$percentage_religion_by_country_unaffiliated_2020, ylab = 'Percentage Non-Religious People by Country')
+qqline(merged_dataset$percentage_religion_by_country_unaffiliated_2020)
+
+
+```
+## Homoscedasticity 
+
+```{r}
+model <- lm(merged_dataset$cpi_score_2020 ~ merged_dataset$percentage_religion_by_country_unaffiliated_2020)
+ggplot()+
+  aes(x = fitted(model), y = resid(model)) +
+  geom_point()+
+  geom_smooth(se = FALSE) + geom_abline(slope = 0)
+```
+## Outlayers
+
+```{r}
+
+```
+
+
+```{r}
+
+# Coline's code
+library(ggResidpanel)
+
+lm_unaffiliated <- lm(percentage_religion_by_country_unaffiliated_2020 ~ cpi_score_2020, data = merged_dataset)
+resid_panel(lm_unaffiliated)
+```
+
