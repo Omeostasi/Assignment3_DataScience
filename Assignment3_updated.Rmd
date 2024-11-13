@@ -26,6 +26,10 @@ religion_by_country <- read_csv("religion-by-country-2024.csv")
 
 corruption_by_country <- read_delim("CPI2020_for_merge.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
+corruption_by_country$`CPI score 2020`<- as.numeric(corruption_by_country$`CPI score 2020`)
+#Changing the column type from chr to numeric
+class(corruption_by_country$`CPI score 2020`) 
+
 ```
 
 We must filter the "religion_by_country" dataset to include only the data from 2020, as is the data we have in the "corruption_by_country" dataset.
@@ -185,9 +189,6 @@ merged_dataset_filtered <- merged_dataset %>%
 
 ## Applying Spearman's correlation
 ```{r}
-
-#CPI Score 2020 is a chr datatype for some reason, so I try to convert to numeric
-merged_dataset_filtered$`CPI score 2020` <- as.numeric(merged_dataset_filtered$`CPI score 2020`)
 
 #Applying Spearman's correlation
 cor(merged_dataset_filtered$percentage_religionByCountry_unaffiliated_2020, merged_dataset_filtered$`CPI score 2020`, method = "spearman")
