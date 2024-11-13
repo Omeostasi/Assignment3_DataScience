@@ -1,0 +1,253 @@
+---
+title: "Assignment3"
+author: "Marina Ramírez Baños, Giovanni Vincenzo Cavallo, Pablo Bondia Portoles, Priyanka Anantha Narayanan"
+date: "2024-11-05"
+output: html_document
+---
+# Brief explanation of our idea 
+
+Our idea is to merge to different datasets together to find out if there is correlation between corruption in countries and the amount of non-religious people in those same countries. 
+One dataset has demographic information about religion in different countries; the other dataset contains information about the Corruption Perceived Index (CPI) in those countries. 
+ *Greater* values of CPI correspond to a less perceived corruption in the country.
+ 
+
+
+# Import data
+
+```{r}
+# Load tidyverse and readr packages
+
+library(tidyverse)
+library(readr)
+
+# Import religion_by_country and corruption_by_country datasets
+
+religion_by_country <- read_csv("religion-by-country-2024.csv")
+
+corruption_by_country <- read_delim("CPI2020_for_merge.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+```
+
+We must filter the "religion_by_country" dataset to include only the data from 2020, as is the data we have in the "corruption_by_country" dataset.
+
+
+```{r}
+# We have missing data for 2020 for United State, so we are gonna use the data from 2010 as an alternative
+
+religion_by_country[religion_by_country$country == "United States", c("ReligionByCountry_TotalReligious_2020",  "religionByCountry_christians_2020", 
+"religionByCountry_muslims_2020", "religionByCountry_hindus_2020", 
+"religionByCountry_buddhists_2020", "religionByCountry_folkReligions_2020", 
+"religionByCountry_jews_2020", "religionByCountry_other_2020", 
+"religionByCountry_unaffiliated_2020")] <- religion_by_country[religion_by_country$country == "United States", c("total", "religionByCountry_christians", 
+"religionByCountry_muslims", "religionByCountry_hindus", 
+"religionByCountry_buddhists", "religionByCountry_folkReligions", 
+"religionByCountry_jews", "religionByCountry_other", 
+"religionByCountry_unaffiliated")]
+
+#This piece of code copies the data for United States from 2010 into 2020 columns
+```
+
+
+```{r}
+
+dput(names(religion_by_country))
+
+
+# Filter religion_by_country dataset only including the data from 2020
+
+religion_by_country <- religion_by_country %>% select("country", "ReligionByCountry_TotalReligious_2020",  "religionByCountry_christians_2020", 
+"religionByCountry_muslims_2020", "religionByCountry_hindus_2020", 
+"religionByCountry_buddhists_2020", "religionByCountry_folkReligions_2020", 
+"religionByCountry_jews_2020", "religionByCountry_other_2020", 
+"religionByCountry_unaffiliated_2020")
+
+
+
+```
+
+We create a dataset "percentage_religion_by_country", which includes the percentage of people of each religion over the total population of the country.
+
+```{r}
+# Create new columns
+
+#Total population
+percentage_religion_by_country <- religion_by_country %>% mutate(
+  total_population = ReligionByCountry_TotalReligious_2020 + religionByCountry_unaffiliated_2020
+)
+
+#Proportion of individuals from each religion
+percentage_religion_by_country <- percentage_religion_by_country %>% mutate(
+  percentage_ReligionByCountry_TotalReligious_2020 = ((ReligionByCountry_TotalReligious_2020
+)/total_population)*100,
+  percentage_religionByCountry_christians_2020 = ((religionByCountry_christians_2020
+)/total_population)*100,
+percentage_religionByCountry_muslims_2020 =((religionByCountry_muslims_2020
+)/total_population)*100,
+percentage_religionByCountry_hindus_2020 = ((religionByCountry_hindus_2020
+)/total_population)*100,
+percetage_religionByCountry_buddhists_2020 = ((religionByCountry_buddhists_2020
+)/total_population)*100,
+percentage_religionByCountry_folkReligions_2020 = ((religionByCountry_folkReligions_2020
+)/total_population)*100,
+percentage_religionByCountry_jews_2020 = ((religionByCountry_jews_2020
+)/total_population)*100,
+percentage_religionByCountry_other_2020 = ((religionByCountry_other_2020
+)/total_population)*100,
+percentage_religionByCountry_unaffiliated_2020 = ((religionByCountry_unaffiliated_2020
+)/total_population)*100
+)
+
+# Remove the other columns that do not include the proportions of individuals
+percentage_religion_by_country <- percentage_religion_by_country %>% select(-starts_with("religion", ignore.case = TRUE))
+
+```
+
+# Merging datasets
+
+To merge both datasets we have to use a variable they have in common. In our case, that variable is "country". However, we firstly need to rename "Country" in the corruption_by_country dataset to "country", as it is in the percentage_religion_by_country dataset.
+
+```{r}
+# Rename "Country" to "country" from corruption_by_country dataset
+
+corruption_by_country <- corruption_by_country %>% rename(country = Country)
+
+# Use full_join() from tidyverse to merge the datasets by country. By doing that, if a country is included in the dataset 1 but not in dataset 2, the columms of dataset 2 will contain "NA" values for that rows and viceversa
+
+merged_dataset <- full_join(percentage_religion_by_country, corruption_by_country, by = "country")
+
+```
+
+# Tidying data
+
+For the purpose of the analysis, we want to exclude those countries that do not show data about the amount of religious population in 2020 or have a NA value for CPI score 2020.
+
+
+```{r}
+# Remove from merged_dataset those countries with NA values for total_population
+
+merged_dataset <- merged_dataset %>% filter(!is.na(total_population))
+
+# Remove from merged_dataset those countries with NA values for CPI score 2020
+
+merged_dataset <- merged_dataset %>% filter(!is.na(`CPI score 2020`))
+```
+
+
+## Trying to remove outliers
+```{r}
+
+# Example using IQR to remove outliers
+Q1 <- quantile(merged_dataset$percentage_religionByCountry_unaffiliated_2020, 0.25, na.rm = TRUE)
+Q3 <- quantile(merged_dataset$percentage_religionByCountry_unaffiliated_2020, 0.75, na.rm = TRUE)
+IQR_value <- Q3 - Q1
+
+# Filtering dataset to remove outliers
+merged_dataset_filtered <- merged_dataset %>%
+  filter(
+    percentage_religionByCountry_unaffiliated_2020 > (Q1 - 1.5 * IQR_value) &
+    percentage_religionByCountry_unaffiliated_2020 < (Q3 + 1.5 * IQR_value)
+  )
+
+```
+
+## Applying Spearman's correlation
+```{r}
+
+#CPI Score 2020 is a chr datatype for some reason, so I try to convert to numeric
+merged_dataset_filtered$`CPI score 2020` <- as.numeric(merged_dataset_filtered$`CPI score 2020`)
+
+#Applying Spearman's correlation
+cor(merged_dataset_filtered$percentage_religionByCountry_unaffiliated_2020, merged_dataset_filtered$`CPI score 2020`, method = "spearman")
+
+```
+
+
+The value of 0.3877 shows that there is a moderate positive association between CPI Score 2020 and Percentage of non-religious people in the country. This means that there is a correlation, but the association isn't that strong.
+
+## Setting up a multiple regression model
+
+```{r}
+
+# Assuming merged_dataset_filtered contains the necessary variables
+
+# Multiple Regression Model
+model <- lm(`CPI score 2020` ~ 
+                                percentage_religionByCountry_unaffiliated_2020, 
+                                data = merged_dataset_filtered)
+
+# Summarize the model to check coefficients and significance
+summary(model)
+
+```
+
+By performing this linear regression, we prove that despite there being a correlation, it is not by chance and the association is statistically significant.
+
+## Building a histogram to show Spearman's correlation
+```{r}
+
+library(ggplot2)
+
+# 1. Histogram of Residuals
+# Assuming you have the residuals from the simple regression model
+simple_model <- lm(`CPI score 2020` ~ percentage_religionByCountry_unaffiliated_2020, data = merged_dataset_filtered)
+merged_dataset_filtered$residuals <- residuals(simple_model)
+
+ggplot(merged_dataset_filtered, aes(x = residuals)) +
+  geom_histogram(binwidth = 2, fill = "skyblue", color = "black") +
+  labs(title = "Histogram of Residuals",
+       x = "Residuals",
+       y = "Frequency") +
+  theme_minimal()
+
+# 2. Scatterplot with Smoothing Line
+ggplot(merged_dataset_filtered, aes(x = percentage_religionByCountry_unaffiliated_2020, y = `CPI score 2020`)) +
+  geom_point() +
+  geom_smooth(method = "loess", color = "blue", se = FALSE) +  # Loess smoothing line for monotonic trend
+  labs(title = "Scatterplot: CPI vs % Non-religious (Unaffiliated)",
+       x = "% Non-religious (Unaffiliated) 2020",
+       y = "CPI Score 2020") +
+  theme_minimal()
+
+```
+
+## To build a model robust to outliers and deal with heteroscedasticity.
+
+```{r}
+
+#Ridge regression
+
+x <- as.matrix(merged_dataset_filtered[, "percentage_religionByCountry_unaffiliated_2020"])
+#add a dummy variable since Ridge Regression expects two columns
+x <- cbind(1, x)  # Adding an intercept term
+y <- merged_dataset_filtered$`CPI score 2020`
+
+library(glmnet)
+#Performing cross-validation
+model <- cv.glmnet(x, y, alpha = 0)
+
+optimal_lambda <- model$lambda.min
+coef(model, s = "lambda.min")
+
+```
+
+This shows that for every 1% increase in the population of non-religious people, the CPI Score is expected to increase by 1.25 points. This shows that the correlation is statistically significant.
+
+## Predict the model and visualize the relationship
+
+```{r}
+
+
+# Predicted values from the model
+predictions <- predict(model, newx = x, s = "lambda.min")
+
+# Plot the relationship
+plot(merged_dataset_filtered$percentage_religionByCountry_unaffiliated_2020, predictions, 
+     main = "Ridge Regression: CPI vs Percentage of Non-Religious People",
+     xlab = "Percentage of Non-Religious People",
+     ylab = "Predicted CPI",
+     col = "blue", pch = 16)
+
+# Add regression line
+abline(lm(predictions ~ merged_dataset_filtered$percentage_religionByCountry_unaffiliated_2020), col = "red")
+
+```
