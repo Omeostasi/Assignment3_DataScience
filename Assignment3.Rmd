@@ -23,9 +23,13 @@ library(readr)
 # Import religion_by_country and corruption_by_country datasets
 
 religion_by_country <- read_csv("religion-by-country-2024.csv")
+
 corruption_by_country <- read_delim("CPI2020_for_merge.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE)
-corruption_by_country$`CPI score 2020`<- as.numeric(corruption_by_country$`CPI score 2020`) #Changing the column type from chr to numeric
+
+corruption_by_country$`CPI score 2020`<- as.numeric(corruption_by_country$`CPI score 2020`)
+#Changing the column type from chr to numeric
 class(corruption_by_country$`CPI score 2020`) 
+
 ```
 
 We must filter the "religion_by_country" dataset to include only the data from 2020, as is the data we have in the "corruption_by_country" dataset.
@@ -130,58 +134,154 @@ merged_dataset <- merged_dataset %>% filter(!is.na(total_population))
 # Remove from merged_dataset those countries with NA values for CPI score 2020
 
 merged_dataset <- merged_dataset %>% filter(!is.na(`CPI score 2020`))
-
-# Removing spaces
-merged_dataset <- janitor::clean_names(merged_dataset)
-
 ```
 
-# Correlation Analysis
 
-We need to check for these assumptions if we want to perform a correlation test:
-* Linearity: There should be a linear relationship between the two variables. Correlation only measures linear relationships.
-* Normality (for parametric correlation tests like Pearson): The two variables should ideally follow a normal distribution. This is especially important for smaller sample sizes.
-* No Outliers: Outliers can significantly distort the correlation coefficient.
+## Normality check
+```{r}
+# Histogram for each variable
 
-## Linearity
+# Apply log transformation
+merged_dataset$NonReligious_Log <- log(merged_dataset$percentage_religionByCountry_unaffiliated_2020)
+
+# Check histogram for original non-religious percentage
+ggplot(merged_dataset, aes(x = NonReligious_Log)) + 
+  geom_histogram(bins = 20, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of Non-Religious Percentage")
+
+# Q-Q plot for original non-religious percentage
+qqnorm(merged_dataset$NonReligious_Log)
+qqline(merged_dataset$NonReligious_Log, col = "red")
+
+# Q-Q plot for CPI score 2020
+qqnorm(merged_dataset$`CPI score 2020`)
+qqline(merged_dataset$`CPI score 2020`, col = "red")
+
+```
+After log transformation, the obtained histogram for non-religious population seemed to be nornally distributed. Few outliers were observed, but since they represent relevant cases we decide to keep them and assume a normally distributed data.
 
 ```{r}
-plot(merged_dataset$percentage_religion_by_country_unaffiliated_2020, merged_dataset$cpi_score_2020, main = "Scatter Plot", xlab = "Non Religious People", ylab = "CPI score")
-abline(lm(merged_dataset$cpi_score_2020 ~ merged_dataset$percentage_religion_by_country_unaffiliated_2020), col = "blue") # Adds a linear regression line
+# Boxplot to check for outliers in 'percentage_religionByCountry_unaffiliated_2020'
+boxplot(merged_dataset$NonReligious_Log,
+        main = "Boxplot for Non-Religious Percentage",
+        ylab = "Non-Religious Percentage",
+        col = "lightblue")
 ```
-## Normality
-```{r}
-# CPI
-qqnorm(merged_dataset$cpi_score_2020, y = 'CPI Score Index')
-qqline(merged_dataset$cpi_score_2020)
-# Non_Religious
-qqnorm(merged_dataset$percentage_religion_by_country_unaffiliated_2020, ylab = 'Percentage Non-Religious People by Country')
-qqline(merged_dataset$percentage_religion_by_country_unaffiliated_2020)
 
 
-```
-## Homoscedasticity 
 
-```{r}
-model <- lm(merged_dataset$cpi_score_2020 ~ merged_dataset$percentage_religion_by_country_unaffiliated_2020)
-ggplot()+
-  aes(x = fitted(model), y = resid(model)) +
-  geom_point()+
-  geom_smooth(se = FALSE) + geom_abline(slope = 0)
-```
-## Outlayers
-
+## Trying to remove outliers
 ```{r}
 
+# Example using IQR to remove outliers
+Q1 <- quantile(merged_dataset$percentage_religionByCountry_unaffiliated_2020, 0.25, na.rm = TRUE)
+Q3 <- quantile(merged_dataset$percentage_religionByCountry_unaffiliated_2020, 0.75, na.rm = TRUE)
+IQR_value <- Q3 - Q1
+
+# Filtering dataset to remove outliers
+merged_dataset_filtered <- merged_dataset %>%
+  filter(
+    percentage_religionByCountry_unaffiliated_2020 > (Q1 - 1.5 * IQR_value) &
+    percentage_religionByCountry_unaffiliated_2020 < (Q3 + 1.5 * IQR_value)
+  )
+
 ```
 
+## Applying Spearman's correlation
+```{r}
+
+#Applying Spearman's correlation
+cor(merged_dataset_filtered$percentage_religionByCountry_unaffiliated_2020, merged_dataset_filtered$`CPI score 2020`, method = "spearman")
+
+```
+
+
+The value of 0.3877 shows that there is a moderate positive association between CPI Score 2020 and Percentage of non-religious people in the country. This means that there is a correlation, but the association isn't that strong.
+
+## Setting up a multiple regression model
 
 ```{r}
 
-# Coline's code
-library(ggResidpanel)
+# Assuming merged_dataset_filtered contains the necessary variables
 
-lm_unaffiliated <- lm(percentage_religion_by_country_unaffiliated_2020 ~ cpi_score_2020, data = merged_dataset)
-resid_panel(lm_unaffiliated)
+# Multiple Regression Model
+model <- lm(`CPI score 2020` ~ 
+                                percentage_religionByCountry_unaffiliated_2020, 
+                                data = merged_dataset_filtered)
+
+# Summarize the model to check coefficients and significance
+summary(model)
+
 ```
 
+By performing this linear regression, we prove that despite there being a correlation, it is not by chance and the association is statistically significant.
+
+## Building a histogram to show Spearman's correlation
+```{r}
+
+library(ggplot2)
+
+# 1. Histogram of Residuals
+# Assuming you have the residuals from the simple regression model
+simple_model <- lm(`CPI score 2020` ~ percentage_religionByCountry_unaffiliated_2020, data = merged_dataset_filtered)
+merged_dataset_filtered$residuals <- residuals(simple_model)
+
+ggplot(merged_dataset_filtered, aes(x = residuals)) +
+  geom_histogram(binwidth = 2, fill = "skyblue", color = "black") +
+  labs(title = "Histogram of Residuals",
+       x = "Residuals",
+       y = "Frequency") +
+  theme_minimal()
+
+# 2. Scatterplot with Smoothing Line
+ggplot(merged_dataset_filtered, aes(x = percentage_religionByCountry_unaffiliated_2020, y = `CPI score 2020`)) +
+  geom_point() +
+  geom_smooth(method = "loess", color = "blue", se = FALSE) +  # Loess smoothing line for monotonic trend
+  labs(title = "Scatterplot: CPI vs % Non-religious (Unaffiliated)",
+       x = "% Non-religious (Unaffiliated) 2020",
+       y = "CPI Score 2020") +
+  theme_minimal()
+
+```
+
+## To build a model robust to outliers and deal with heteroscedasticity.
+
+```{r}
+
+#Ridge regression
+
+x <- as.matrix(merged_dataset_filtered[, "percentage_religionByCountry_unaffiliated_2020"])
+#add a dummy variable since Ridge Regression expects two columns
+x <- cbind(1, x)  # Adding an intercept term
+y <- merged_dataset_filtered$`CPI score 2020`
+
+library(glmnet)
+#Performing cross-validation
+model <- cv.glmnet(x, y, alpha = 0)
+
+optimal_lambda <- model$lambda.min
+coef(model, s = "lambda.min")
+
+```
+
+This shows that for every 1% increase in the population of non-religious people, the CPI Score is expected to increase by 1.25 points. This shows that the correlation is statistically significant.
+
+## Predict the model and visualize the relationship
+
+```{r}
+
+
+# Predicted values from the model
+predictions <- predict(model, newx = x, s = "lambda.min")
+
+# Plot the relationship
+plot(merged_dataset_filtered$percentage_religionByCountry_unaffiliated_2020, predictions, 
+     main = "Ridge Regression: CPI vs Percentage of Non-Religious People",
+     xlab = "Percentage of Non-Religious People",
+     ylab = "Predicted CPI",
+     col = "blue", pch = 16)
+
+# Add regression line
+abline(lm(predictions ~ merged_dataset_filtered$percentage_religionByCountry_unaffiliated_2020), col = "red")
+
+```
