@@ -133,6 +133,39 @@ merged_dataset <- merged_dataset %>% filter(!is.na(`CPI score 2020`))
 ```
 
 
+## Normality check
+```{r}
+# Histogram for each variable
+
+# Apply log transformation
+merged_dataset$NonReligious_Log <- log(merged_dataset$percentage_religionByCountry_unaffiliated_2020)
+
+# Check histogram for original non-religious percentage
+ggplot(merged_dataset, aes(x = NonReligious_Log)) + 
+  geom_histogram(bins = 20, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of Non-Religious Percentage")
+
+# Q-Q plot for original non-religious percentage
+qqnorm(merged_dataset$NonReligious_Log)
+qqline(merged_dataset$NonReligious_Log, col = "red")
+
+# Q-Q plot for CPI score 2020
+qqnorm(merged_dataset$`CPI score 2020`)
+qqline(merged_dataset$`CPI score 2020`, col = "red")
+
+```
+After log transformation, the obtained histogram for non-religious population seemed to be nornally distributed. Few outliers were observed, but since they represent relevant cases we decide to keep them and assume a normally distributed data.
+
+```{r}
+# Boxplot to check for outliers in 'percentage_religionByCountry_unaffiliated_2020'
+boxplot(merged_dataset$NonReligious_Log,
+        main = "Boxplot for Non-Religious Percentage",
+        ylab = "Non-Religious Percentage",
+        col = "lightblue")
+```
+
+
+
 ## Trying to remove outliers
 ```{r}
 
